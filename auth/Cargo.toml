@@ -10,8 +10,12 @@ tokio-stream = "0.1.17"
 tonic = "0.14.2"
 tonic-prost = "0.14.2"
 common = { path = "../common" }
-jwt = "0.16.0"
 rusqlite = "0.38.0"
+argon2 = { version = "0.5", features = ["password-hash", "std"] }
+password-hash = { version = "0.5", features = ["rand_core"] }
+serde = "1.0.228"
+chrono = "0.4.42"
+jwt-simple = { version = "0.12", default-features = false, features = ["pure-rust"] }
 
 [build-dependencies]
 tonic-prost-build = "0.14.2"

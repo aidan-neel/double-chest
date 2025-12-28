@@ -5,5 +5,4 @@ pub struct User {
     pub password_hash: String,
     pub created_at: i64,
     pub updated_at: i64,
-    pub deleted_at: i64,
 }

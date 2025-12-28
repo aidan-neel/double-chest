@@ -7,6 +7,7 @@ use tokio_stream::StreamExt;
 use tokio::fs::{create_dir_all, OpenOptions};
 use tokio::io::AsyncWriteExt;
 use std::sync::{Arc, Mutex};
+use chrono::Utc;
 
 #[derive(Clone)]
 pub struct UploadServiceImpl {
@@ -38,17 +39,20 @@ impl UploadService for UploadServiceImpl {
                         .open(&file_path)
                         .await
                         .map_err(|e| tonic::Status::internal(format!("File error: {}", e)))?;
-
+                    
                     file.write_all(&chunk.data)
                         .await
                         .map_err(|e| tonic::Status::internal(format!("Failed to write chunk: {}", e)))?;
                     
                     final_data.extend(chunk.data);
+                    let now = Utc::now().timestamp();
                     insert_file_async(conn.clone(), File {
                         id: None, // auto generated
                         file_name: chunk.filename,
                         file_path: file_path,
                         file_size: final_data.len() as i64,
+                        created_at: now,
+                        updated_at: now,
                     })
                         .await
                         .map_err(|e| tonic::Status::internal(format!("DB error: {}", e)))?;

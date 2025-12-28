@@ -13,6 +13,8 @@ tokio = { version = "1.48.0", features = ["full"] }
 tokio-stream = "0.1.17"
 tonic = "0.14.2"
 tonic-prost = "0.14.2"
+common = { path = "../common" }
+chrono = "0.4.42"
 
 [build-dependencies]
 tonic-prost-build = "0.14.2"

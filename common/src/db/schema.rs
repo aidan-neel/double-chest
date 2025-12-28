@@ -1,10 +1,11 @@
-use std::sync::{Arc, Mutex};
+use crate::db::connection::DbPool; // Make sure this path is correct
+use rusqlite::Result;
 
-use rusqlite::Connection;
+pub fn init_db(pool: DbPool) -> Result<()> {
+    let conn = pool.get().map_err(|e| {
+        rusqlite::Error::ToSqlConversionFailure(Box::new(e))
+    })?;
 
-pub fn init_db(conn: Arc<Mutex<Connection>>) -> rusqlite::Result<()> {
-    let conn = conn.lock().unwrap();
-    
     conn.execute(
         "CREATE TABLE IF NOT EXISTS file (
             id INTEGER PRIMARY KEY,
@@ -14,16 +15,15 @@ pub fn init_db(conn: Arc<Mutex<Connection>>) -> rusqlite::Result<()> {
         )",
         [],
     )?;
-    
+
     conn.execute(
         "CREATE TABLE IF NOT EXISTS user (
             id INTEGER PRIMARY KEY,
             display_name TEXT NOT NULL,
-            email TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE, -- Added UNIQUE to prevent duplicate emails
             password_hash TEXT NOT NULL,
             created_at INTEGER NOT NULL, 
-            updated_at INTEGER NOT NULL,
-            deleted_at INTEGER
+            updated_at INTEGER NOT NULL
         )",
         [],
     )?;
@@ -35,12 +35,12 @@ pub fn init_db(conn: Arc<Mutex<Connection>>) -> rusqlite::Result<()> {
             token_hash TEXT NOT NULL,
             created_at INTEGER NOT NULL, 
             expires_at INTEGER NOT NULL,
-
             FOREIGN KEY (user_id)
                 REFERENCES user(id)
                 ON DELETE CASCADE
         )",
         [],
     )?;
+
     Ok(())
 }

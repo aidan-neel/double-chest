@@ -1,13 +1,11 @@
 mod grpc;
+mod jwt;
 
 use tonic::transport::Server;
 use proto::token_service_server::TokenServiceServer;
 use grpc::token::TokenServiceImpl;
 
-use std::sync::{Arc, Mutex};
-use common::db::connection::establish_connection;
-use rusqlite::Connection;
-
+use common::db::connection::establish_pool;
 use common::db::schema::init_db;
 
 pub mod proto {
@@ -18,9 +16,12 @@ pub mod proto {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr = "[::1]:50051".parse()?;
 
-    let conn = Arc::new(Mutex::new(establish_connection()?));
-    let _ = init_db(conn.clone());
-    let token_service = TokenServiceImpl { conn: conn.clone() };
+    let pool = establish_pool();
+    init_db(pool.clone())?; 
+
+    let token_service = TokenServiceImpl { 
+        pool: pool.clone() 
+    };
 
     println!("TokenService listening on {}", addr);
 
