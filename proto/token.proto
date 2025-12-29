@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package auth;
+
+message Token {
+    string access_token = 1;
+    string refresh_token = 2;
+}
+
+message GetTokenRequest {
+    string email = 1;
+    string password = 2;
+}
+
+message GetTokenResponse {
+    Token token = 1;
+}
+
+message RefreshTokenRequest {
+    string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+    Token token = 1;
+}
+
+service TokenService {
+    rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
+    rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+}

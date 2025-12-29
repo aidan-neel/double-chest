@@ -1,2 +1,2 @@
 [workspace]
-members = ["core", "storage"]
+members = ["auth", "common","core", "storage"]
