@@ -12,6 +12,7 @@ tonic = "0.14.2"
 tonic-prost = "0.14.2"
 common = { path = "../common" }
 chrono = "0.4.42"
+serde = "1.0.228"
 
 [build-dependencies]
 tonic-prost-build = "0.14.2"

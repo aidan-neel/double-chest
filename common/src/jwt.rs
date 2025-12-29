@@ -15,14 +15,13 @@ pub struct JWTTokenService {
 impl JWTTokenService {
     pub fn new(access_secret: String, refresh_secret: String) -> Self {
         Self {
-            // HS256Key expects a secret to sign with
             access_key: HS256Key::from_bytes(access_secret.as_bytes()),
             refresh_key: HS256Key::from_bytes(refresh_secret.as_bytes()),
             access_mins: 15,
             refresh_days: 14,
         }
     }
-
+    
     pub fn create_access_token(&self, user_id: &str) -> Result<String, jwt_simple::Error> {
         let claims = Claims::with_custom_claims(
             CustomClaims { is_refresh: false },

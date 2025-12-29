@@ -16,6 +16,7 @@ password-hash = { version = "0.5", features = ["rand_core"] }
 serde = "1.0.228"
 chrono = "0.4.42"
 jwt-simple = { version = "0.12", default-features = false, features = ["pure-rust"] }
+dotenvy = "0.15.7"
 
 [build-dependencies]
 tonic-prost-build = "0.14.2"

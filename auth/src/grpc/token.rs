@@ -1,3 +1,5 @@
+use std::env;
+
 use tonic::{Request, Response, Status};
 use chrono::Utc;
 use argon2::{Argon2, PasswordHash, PasswordVerifier};
@@ -5,8 +7,9 @@ use common::db::queries::{get_user, insert_refresh_async};
 use common::models::refresh::Refresh;
 use crate::proto::{GetTokenRequest, GetTokenResponse, RefreshTokenRequest, RefreshTokenResponse, Token};
 use crate::proto::token_service_server::TokenService;
-use crate::jwt::JWTTokenService;
+use common::jwt::JWTTokenService;
 use common::db::connection::DbPool; 
+use dotenvy::dotenv;
 
 #[derive(Clone)]
 pub struct TokenServiceImpl {
@@ -20,6 +23,7 @@ impl TokenService for TokenServiceImpl {
         request: Request<GetTokenRequest>
     ) -> Result<Response<GetTokenResponse>, Status> {
         let data = request.into_inner();
+        dotenv().ok();
         
         let user_opt = get_user(self.pool.clone(), data.email)
             .await
@@ -38,7 +42,10 @@ impl TokenService for TokenServiceImpl {
             return Err(Status::unauthenticated("Invalid credentials"));
         }
 
-        let jwt_service = JWTTokenService::new("access_secret".into(), "refresh_secret".into());
+        let access = env::var("JWT_ACCESS_SECRET").expect("JWT_ACCESS_SECRET missing");
+        let refresh = env::var("JWT_REFRESH_SECRET").expect("JWT_REFRESH_SECRET missing");
+        let jwt_service = JWTTokenService::new(access, refresh);
+        
         let user_id_str = user.id.unwrap().to_string();
 
         let access_token = jwt_service.create_access_token(&user_id_str)
@@ -68,9 +75,49 @@ impl TokenService for TokenServiceImpl {
 
     async fn refresh_token(
         &self,
-        _request: Request<RefreshTokenRequest>
+        request: Request<RefreshTokenRequest>,
     ) -> Result<Response<RefreshTokenResponse>, Status> {
-        // Implementation here...
-        Ok(Response::new(RefreshTokenResponse { token: None }))
+        dotenv().ok();
+        let req = request.into_inner();
+        let token_str = req.refresh_token;
+
+        let access = env::var("JWT_ACCESS_SECRET").expect("JWT_ACCESS_SECRET missing");
+        let refresh = env::var("JWT_REFRESH_SECRET").expect("JWT_REFRESH_SECRET missing");
+        let jwt_service = JWTTokenService::new(access, refresh);
+
+        let refresh = common::db::queries::get_refresh_by_token(self.pool.clone(), token_str)
+            .await
+            .map_err(|_| Status::unauthenticated("Invalid refresh token"))?
+            .ok_or_else(|| Status::unauthenticated("Refresh token not found"))?;
+        
+        let now = chrono::Utc::now().timestamp();
+        if refresh.expires_at < now {
+            return Err(Status::unauthenticated("Refresh token expired"));
+        }
+        let access_token = jwt_service.create_access_token(&refresh.user_id.to_string())
+            .map_err(|_| Status::internal("Failed to issue access token"))?;
+
+        let refresh_token = jwt_service.create_refresh_token(&refresh.user_id.to_string())
+            .map_err(|_| Status::internal("Failed to issue refresh token"))?;
+        let now = Utc::now().timestamp();
+        insert_refresh_async(self.pool.clone(), Refresh {
+            id: None,
+            user_id: refresh.user_id,
+            token_hash: refresh_token.clone(),
+            created_at: now,
+            expires_at: now + (jwt_service.refresh_days * 24 * 60 * 60),
+        })
+        .await
+        .map_err(|_| Status::internal("Failed to save refresh token"))?;
+
+        let response = Token {
+            access_token: access_token,
+            refresh_token: refresh_token
+        };
+
+        Ok(Response::new(RefreshTokenResponse {
+            token: Some(response),
+        }))
     }
+
 }

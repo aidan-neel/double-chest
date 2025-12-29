@@ -1,5 +1,4 @@
 mod grpc;
-mod jwt;
 
 use tonic::transport::Server;
 use proto::token_service_server::TokenServiceServer;
@@ -14,7 +13,7 @@ pub mod proto {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse()?;
+    let addr = "[::1]:50052".parse()?;
 
     let pool = establish_pool();
     init_db(pool.clone())?; 
@@ -24,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     println!("TokenService listening on {}", addr);
-
+    
     Server::builder()
         .add_service(TokenServiceServer::new(token_service))
         .serve(addr)

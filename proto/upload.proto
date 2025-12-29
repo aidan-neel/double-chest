@@ -9,8 +9,11 @@ service UploadService {
 message UploadRequest {
     bytes data = 1;
     string filename = 2;
+    int32 user_id = 3;
 }
 
 message UploadResponse {
     string id = 1;
+    string filename = 2;
+    string filepath = 3;
 }

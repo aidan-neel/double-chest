@@ -9,9 +9,13 @@ pub fn init_db(pool: DbPool) -> Result<()> {
     conn.execute(
         "CREATE TABLE IF NOT EXISTS file (
             id INTEGER PRIMARY KEY,
+            user_id INTEGER NOT NULL UNIQUE,
             file_path TEXT NOT NULL,
             file_name TEXT NOT NULL,
-            file_size INTEGER NOT NULL
+            file_size INTEGER NOT NULL,
+            FOREIGN KEY (user_id)
+                REFERENCES user(id)
+                ON DELETE CASCADE
         )",
         [],
     )?;
@@ -20,7 +24,7 @@ pub fn init_db(pool: DbPool) -> Result<()> {
         "CREATE TABLE IF NOT EXISTS user (
             id INTEGER PRIMARY KEY,
             display_name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE, -- Added UNIQUE to prevent duplicate emails
+            email TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
             created_at INTEGER NOT NULL, 
             updated_at INTEGER NOT NULL
@@ -30,9 +34,8 @@ pub fn init_db(pool: DbPool) -> Result<()> {
 
     conn.execute(
         "CREATE TABLE IF NOT EXISTS refresh (
-            id INTEGER PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            token_hash TEXT NOT NULL,
+            token_hash TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL UNIQUE,
             created_at INTEGER NOT NULL, 
             expires_at INTEGER NOT NULL,
             FOREIGN KEY (user_id)
