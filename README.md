@@ -2,8 +2,10 @@
 
 Overkill project just for learning new technologies
 
-tech:
-
--   Very unpractical use of gRPC
+-   gRPC
 -   Rust
 -   React
+
+clone and try it out via
+`cargo xtask dev`
+(on linux)

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Spinner } from "@/components/ui/spinner";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 export default function Register() {
     const [registering, setRegistering] = useState(false);
@@ -20,18 +21,47 @@ export default function Register() {
                 </p>
             </header>
             <div className="grid w-full max-w-sm items-center gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input type="email" id="email" placeholder="Email" />
+                <Label
+                    className={
+                        registering
+                            ? "opacity-70 hover:cursor-not-allowed pointer-events-none"
+                            : ""
+                    }
+                    htmlFor="email"
+                >
+                    Email
+                </Label>
+                <Input
+                    disabled={registering}
+                    type="email"
+                    id="email"
+                    placeholder="Email"
+                />
             </div>
             <div className="grid w-full max-w-sm items-center gap-3 mt-1">
-                <Label htmlFor="password">Password</Label>
-                <Input type="password" id="password" placeholder="Password" />
+                <Label
+                    className={
+                        registering
+                            ? "opacity-70 hover:cursor-not-allowed pointer-events-none"
+                            : ""
+                    }
+                    htmlFor="password"
+                >
+                    Password
+                </Label>
+                <Input
+                    disabled={registering}
+                    type="password"
+                    id="password"
+                    placeholder="Password"
+                />
             </div>
             <Button
                 onClick={() => {
                     setRegistering(true);
                     setTimeout(() => {
                         setRegistering(false);
+                        toast.success("Registered successfully!");
                     }, 3000);
                 }}
                 disabled={registering}
