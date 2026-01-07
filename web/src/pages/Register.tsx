@@ -41,7 +41,6 @@ export default function Register() {
             });
 
             const data = (await res.json()) as AuthResponse;
-            console.log(data);
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message);
