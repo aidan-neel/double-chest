@@ -16,7 +16,7 @@ pub fn establish_connection() -> Result<Connection> {
 }
 
 pub fn establish_pool() -> DbPool {
-    let path = "../data/db.sqlite3";
+    let path = "./data/db.sqlite3";
     
     if let Some(parent) = std::path::Path::new(path).parent() {
         std::fs::create_dir_all(parent).ok();

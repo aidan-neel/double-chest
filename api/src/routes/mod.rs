@@ -10,6 +10,8 @@ use crate::proto::upload_service_client::UploadServiceClient;
 use dotenvy::dotenv;
 use axum::{Router};
 use crate::proto::token_service_client::TokenServiceClient;
+use tower_http::cors::{CorsLayer};
+use axum::http::{header, Method};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -30,6 +32,16 @@ pub async fn create_router() -> Result<Router, tonic::transport::Error> {
     let upload_client = UploadServiceClient::connect("http://[::1]:50051").await?;
     let jwt_service = Arc::new(JWTTokenService::new(access, refresh));
 
+    let cors = CorsLayer::new()
+        .allow_origin("http://localhost:5173".parse::<axum::http::HeaderValue>().unwrap())
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::PUT,
+            Method::DELETE,
+        ])
+        .allow_headers([header::CONTENT_TYPE, header::AUTHORIZATION]);
+
     let state = AppState { 
         db_pool: pool, 
         token_grpc_client: token_client,
@@ -43,6 +55,7 @@ pub async fn create_router() -> Result<Router, tonic::transport::Error> {
             .layer(axum::middleware::from_fn_with_state(state.clone(), jwt_auth)))
         .fallback(handler_404)
         .with_state(state)
+        .layer(cors)
     )
 }
 

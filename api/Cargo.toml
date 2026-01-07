@@ -17,6 +17,8 @@ common = { path = "../common" }
 chrono = "0.4.42"
 dotenvy = "0.15.7"
 axum-extra = { version = "0.12.5", features = ["multipart"] }
+hyper = "1.8.1"
+tower-http = { version = "0.6.8", features = ["cors"] }
 
 [build-dependencies]
 tonic-prost-build = "0.14.2"
